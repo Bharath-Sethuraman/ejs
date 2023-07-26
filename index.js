@@ -1,5 +1,6 @@
 //jshint esversion:6
-
+const dotenv = require("dotenv");
+dotenv.config({ path: './config.env' });
 const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
@@ -11,6 +12,7 @@ const contactContent = "Scelerisque eleifend donec pretium vulputate sapien. Rho
 var postval="";
 
 const app = express();
+const PORT = process.env.PORT || 8080;
 const _ = require('lodash');
 const { default: mongoose } = require("mongoose");
 // const { MongoClient } = require('mongodb');
@@ -18,19 +20,30 @@ const { default: mongoose } = require("mongoose");
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
+mongoose.set('strictQuery', false);
+
+const connectDB = async () => {
+  try {
+    const conn = await mongoose.connect(process.env.MONGO_URI);
+    console.log(`MongoDB Connected: ${conn.connection.host}`);
+  } catch (error) {
+    console.log(error);
+    process.exit(1);
+  }
+};
 let item = [];
-mongoose.connect('mongodb+srv://athibharath237:Test123@cluster0.eqpgeeq.mongodb.net/blogDB', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() =>
-{
-  console.log("Mongoose Connected");
-})
-.catch((err) =>
-{
-  console.log(err);
-})
+// mongoose.connect('mongodb+srv://athibharath237:Test123@cluster0.eqpgeeq.mongodb.net/blogDB', {
+//   useNewUrlParser: true,
+//   useUnifiedTopology: true
+// })
+// .then(() =>
+// {
+//   console.log("Mongoose Connected");
+// })
+// .catch((err) =>
+// {
+//   console.log(err);
+// })
 const postSchema = {
   title: String,
   content: String
@@ -90,6 +103,8 @@ app.get('/posts/:postId', (req, res) => {
 
 
 
-app.listen(3000, function() {
-  console.log("Server started on port 3000");
+connectDB().then(() => {
+  app.listen(PORT, () => {
+      console.log('Listening on port ${PORT}');
+  })
 });
